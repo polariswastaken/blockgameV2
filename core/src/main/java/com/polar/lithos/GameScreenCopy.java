@@ -1,7 +1,8 @@
 package com.polar.lithos;
 
-import com.badlogic.gdx.Gdx;
+/*import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -10,9 +11,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.Screen;
 
-public class GameScreen implements Screen {
+public class GameScreenCopy implements Screen {
 
     SpriteBatch batch;
     Texture stoneTexture;
@@ -21,38 +21,33 @@ public class GameScreen implements Screen {
     Texture grassFullTexture;
     OrthographicCamera camera;
 
+    // 2D array [width][height].
+    // world[x][y] will hold an ID (e.g. 1 for stone, 2 for dirt)
+    int[][] world;
+    final int WORLD_WIDTH = 2000;
+    final int WORLD_HEIGHT = 100;
+    final int BLOCK_SIZE = 16; // Each block: 16x16
 
     Music backgroundMusic;
 
-    Rectangle hitbox;
+    Rectangle player;
     Texture playerTexture;
     Sprite playerSprite;
 
-    Player player;
-    World world;
 
-    private final int BLOCK_SIZE;
-    private final int WORLD_WIDTH;
-    private final int WORLD_HEIGHT;
-    private final Game game;
-    private final View view;
+    float playerVelocityX = 0;
+    float playerVelocityY = 0;
+    boolean onGround = false;
+    boolean facingRight = false;
 
 
-    public GameScreen(final Game game) {
-        System.out.println("loaded GameScreen constructor");
-        // generate the world
-        this.world = new World();
-        this.player = new Player();
-        this.view = new View();
-
-        this.BLOCK_SIZE = world.BLOCK_SIZE;
-        this.WORLD_WIDTH = world.WORLD_WIDTH;
-        this.WORLD_HEIGHT = world.WORLD_HEIGHT;
-
-        this.batch = game.batch; //import spriteBatch
-        this.game = game;
+    final float SPEED = 200;
+    final float GRAVITY = -500;
+    final float JUMP_SPEED = 250;
 
 
+    public GameScreenCopy(final Game game) {
+        batch = new SpriteBatch();
 
         stoneTexture = new Texture("stone.png");
         dirtTexture = new Texture("dirt.png");
@@ -75,14 +70,80 @@ public class GameScreen implements Screen {
         backgroundMusic.play();
 
         // Rectangle(x_spawn, y_spawn, x_size, y_size)
-        hitbox = new Rectangle(8*BLOCK_SIZE, 100*BLOCK_SIZE, 13, 30);
+        player = new Rectangle(8*BLOCK_SIZE, 100*BLOCK_SIZE, 13, 30);
 
         playerTexture = new Texture("character.png");
 
         playerSprite = new Sprite(playerTexture);
-        playerSprite.setSize(hitbox.getWidth(), hitbox.getHeight());
+        playerSprite.setSize(player.getWidth(), player.getHeight());
         playerSprite.setOriginCenter();
 
+        // setup camera
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, 1280, 720);
+
+        // generate the world
+        world = new int[WORLD_WIDTH][WORLD_HEIGHT];
+
+        // x (column), y (row)
+        for (int x = 0; x < WORLD_WIDTH; x++) {
+            for (int y = 0; y < WORLD_HEIGHT; y++) {
+                if (y < 59) {
+                    world[x][y] = 1; // STONE
+                } else if (y < 61){
+                    world[x][y] = 2; // DIRT
+                } else if (y < 62) {
+                    world[x][y] = 3; // GRASS
+                } else if (y < 63) {
+                    world[x][y] = 4; // GRASS BLOCK
+                } else {
+                    world[x][y] = 0;
+                }
+            }
+        }
+    }
+
+    private void updatePlayer(float deltaTime) {
+        // Horizontal movement
+        // stop moving if no key is pressed
+        playerVelocityX = 0;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            playerVelocityX = -SPEED; // move left
+
+            if (facingRight) {
+                playerSprite.setScale(1, 1);
+                facingRight = false;
+            }
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            playerVelocityX = SPEED;  // move right
+            if (!facingRight) {
+                playerSprite.setScale(-1, 1);
+                facingRight = true;
+            }
+        }
+
+        player.x += playerVelocityX * deltaTime;
+
+        // Check wall collision
+        checkCollisionX();
+
+
+        // Vertical movement
+
+        // Apply Gravity to Velocity
+        playerVelocityY += GRAVITY * deltaTime;
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && onGround) {
+            playerVelocityY = JUMP_SPEED;
+            onGround = false;
+        }
+
+        player.y += playerVelocityY * deltaTime;
+
+        // Check floor/ceiling collision
+        checkCollisionY();
     }
 
     @Override
@@ -90,12 +151,19 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        world.update(delta);
+        updatePlayer(delta);
 
-        view.setCameraX(hitbox.x);
-        view.setCameraY(hitbox.y+100);
+        camera.position.x = player.x;
+        camera.position.y = player.y+100;
 
-        view.clampScreen();
+        // Clamp screen to game world. (world screen boundary).
+        float worldWidthInPixels = WORLD_WIDTH * BLOCK_SIZE;
+
+        float minX = camera.viewportWidth / 2;
+        float maxX = worldWidthInPixels - (camera.viewportWidth / 2);
+
+        if (camera.position.x < minX) camera.position.x = minX;
+        if (camera.position.x > maxX) camera.position.x = maxX;
 
         // Check if the left mouse button is clicked (or screen is touched)
         if (Gdx.input.isTouched()) {
@@ -109,7 +177,7 @@ public class GameScreen implements Screen {
             Vector3 mousePos = new Vector3(screenX, screenY, 0);
 
             //converts the vector from screen to world coords
-            view.translateCoordinateSystem(mousePos);
+            camera.unproject(mousePos);
             // now mousePos.x and mousePos.y are in world coordinates
 
             // Convert world coordinates to grid blocks/tiles
@@ -122,12 +190,12 @@ public class GameScreen implements Screen {
 
                 // Sets array value to 0 (air) on LEFT click.
                 if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                    world.setBlock(gridX, gridY, 0);
+                    world[gridX][gridY] = 0;
                 }
 
                 // Sets the array value to 1 (dirt) on RIGHT click.
                 else if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
-                    world.setBlock(gridX, gridY, 0);
+                    world[gridX][gridY] = 1;
                 }
             }
         }
@@ -136,8 +204,8 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Render
-        view.camera.update();
-        batch.setProjectionMatrix(view.camera.combined);
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
 
@@ -154,13 +222,13 @@ public class GameScreen implements Screen {
         // Draws whats on screen with frustum culling.
         for (int x = startX; x < endX; x++) {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
-                if (world.getBlock(x, y) == 1) {
+                if (world[x][y] == 1) {
                     batch.draw(stoneTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
-                } else if (world.getBlock(x, y) == 2) {
+                } else if (world[x][y] == 2) {
                     batch.draw(dirtTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
-                } else if (world.getBlock(x, y) == 3) {
+                } else if (world[x][y] == 3) {
                     batch.draw(grassTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
-                } else if (world.getBlock(x, y) == 4) {
+                } else if (world[x][y] == 4) {
                     batch.draw(grassFullTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
                 }
             }
@@ -168,14 +236,10 @@ public class GameScreen implements Screen {
 
         //draw player
         //batch.draw(playerTexture, player.x, player.y, player.width, player.height);
-        playerSprite.setPosition(hitbox.getX(), hitbox.getY());
+        playerSprite.setPosition(player.getX(), player.getY());
         playerSprite.draw(batch);
 
         batch.end();
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new FirstScreen(game));
-        }
     }
 
     @Override
@@ -214,3 +278,4 @@ public class GameScreen implements Screen {
         backgroundMusic.dispose();
     }
 }
+*/
