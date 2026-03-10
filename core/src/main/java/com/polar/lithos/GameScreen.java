@@ -19,14 +19,9 @@ public class GameScreen implements Screen {
     Texture dirtTexture;
     Texture grassTexture;
     Texture grassFullTexture;
-    OrthographicCamera camera;
-
 
     Music backgroundMusic;
-
-    Rectangle hitbox;
-    Texture playerTexture;
-    Sprite playerSprite;
+    OrthographicCamera camera;
 
     Player player;
     World world;
@@ -34,24 +29,26 @@ public class GameScreen implements Screen {
     private final int BLOCK_SIZE;
     private final int WORLD_WIDTH;
     private final int WORLD_HEIGHT;
+
     private final Game game;
     private final View view;
 
+    private int pickedBlock;
+
 
     public GameScreen(final Game game) {
-        System.out.println("loaded GameScreen constructor");
         // generate the world
         this.world = new World();
         this.player = new Player();
         this.view = new View();
 
-        this.BLOCK_SIZE = world.BLOCK_SIZE;
-        this.WORLD_WIDTH = world.WORLD_WIDTH;
-        this.WORLD_HEIGHT = world.WORLD_HEIGHT;
+        BLOCK_SIZE = Config.BLOCK_SIZE;
+        WORLD_WIDTH = Config.WORLD_WIDTH;
+        WORLD_HEIGHT = Config.WORLD_HEIGHT;
 
-        this.batch = game.batch; //import spriteBatch
         this.game = game;
-
+        this.batch = game.batch; //import spriteBatch
+        this.camera = view.camera;
 
 
         stoneTexture = new Texture("stone.png");
@@ -71,17 +68,8 @@ public class GameScreen implements Screen {
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal(music));
 
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.8f);
+        backgroundMusic.setVolume(0.1f);
         backgroundMusic.play();
-
-        // Rectangle(x_spawn, y_spawn, x_size, y_size)
-        hitbox = new Rectangle(8*BLOCK_SIZE, 100*BLOCK_SIZE, 13, 30);
-
-        playerTexture = new Texture("character.png");
-
-        playerSprite = new Sprite(playerTexture);
-        playerSprite.setSize(hitbox.getWidth(), hitbox.getHeight());
-        playerSprite.setOriginCenter();
 
     }
 
@@ -92,12 +80,14 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         world.update(delta);
 
-        view.setCameraX(hitbox.x);
-        view.setCameraY(hitbox.y+100);
+        // Track the camera to the player's new position inside the world
+        view.setCameraX(world.player.hitbox.x);
+        view.setCameraY(world.player.hitbox.y + 100);
+        view.clampScreen();
 
         view.clampScreen();
 
-        // Check if the left mouse button is clicked (or screen is touched)
+        // Checks if the screen has been touched (e.g., mouse left,right,middle clicked)
         if (Gdx.input.isTouched()) {
 
             //get the raw screen coordinates
@@ -117,16 +107,18 @@ public class GameScreen implements Screen {
             int gridX = (int) (mousePos.x / BLOCK_SIZE);
             int gridY = (int) (mousePos.y / BLOCK_SIZE);
 
-            // Safety check so if we click outside the 50x50 world, the game won't crash
+            // Safety check so if we click outside the world, the game won't crash
             if (gridX >= 0 && gridX < WORLD_WIDTH && gridY >= 0 && gridY < WORLD_HEIGHT) {
-
-                // Sets array value to 0 (air) on LEFT click.
-                if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                    world.setBlock(gridX, gridY, 0);
+                if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
+                    pickedBlock = world.getBlock(gridX, gridY);
                 }
 
-                // Sets the array value to 1 (dirt) on RIGHT click.
-                else if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+                // Sets the array value to PICKED block on RIGHT click.
+                if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+                    world.setBlock(gridX, gridY, pickedBlock);
+                }
+                // Sets array value to 0 (air) on LEFT click.
+                else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
                     world.setBlock(gridX, gridY, 0);
                 }
             }
@@ -167,9 +159,7 @@ public class GameScreen implements Screen {
         }
 
         //draw player
-        //batch.draw(playerTexture, player.x, player.y, player.width, player.height);
-        playerSprite.setPosition(hitbox.getX(), hitbox.getY());
-        playerSprite.draw(batch);
+        world.player.draw(batch);
 
         batch.end();
 

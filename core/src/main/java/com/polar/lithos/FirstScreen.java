@@ -4,32 +4,36 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
-/** First screen of the application. Displayed after the application is created. */
 public class FirstScreen implements Screen {
 
     final Game game;
+    Viewport menuViewport;
 
     public FirstScreen(Game game) {
         this.game = game;
+        this.menuViewport = new FitViewport(1280, 720);
     }
+
 
     @Override
     public void show() {
-        // Prepare your screen here.
     }
 
     @Override
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
 
-        game.viewport.apply();
-        game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
+        // Apply the menu's viewport, NOT the game's 8x5 viewport
+        menuViewport.apply();
+        game.batch.setProjectionMatrix(menuViewport.getCamera().combined);
 
         game.batch.begin();
-        //draw text. Remember that x and y are in meters
-        game.font.draw(game.batch, "Weeeelcome ", 1, 1.5f);
-        game.font.draw(game.batch, "bbbbbbbbbbbb", 1, 1);
+        // Now you are drawing in a 1280x720 space.
+        // X and Y are in pixels. (640, 360) is the middle of the screen.
+        game.font.draw(game.batch, "Main Menu - Click to Start", 550, 360);
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
@@ -40,12 +44,9 @@ public class FirstScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        // If the window is minimized on a desktop (LWJGL3) platform, width and height are 0, which causes problems.
-        // In that case, we don't resize anything, and wait for the window to be a normal size before updating.
         if(width <= 0 || height <= 0) return;
 
-        // Resize your screen here. The parameters represent the new window size.
-        game.viewport.update(width, height, true);
+        menuViewport.update(width, height, true);
     }
 
     @Override

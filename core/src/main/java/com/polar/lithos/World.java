@@ -10,26 +10,19 @@ public class World {
     // 2D array [width][height].
     // world[x][y] will hold an ID (e.g. 1 for stone, 2 for dirt)
     int[][] terrain;
-    final int WORLD_WIDTH = 2000;
-    final int WORLD_HEIGHT = 100;
-    final int BLOCK_SIZE = 16; // Each block: 16x16
+    private final int WORLD_WIDTH;
+    private final int WORLD_HEIGHT;
+    private final int BLOCK_SIZE;
 
-    float playerVelocityX = 0;
-    float playerVelocityY = 0;
-    boolean onGround = false;
-    boolean facingRight = false;
+    //public so game screen can access it to draw it
+    public Player player;
 
-    final float SPEED = 200;
-    final float GRAVITY = -500;
-    final float JUMP_SPEED = 250;
-
-    Texture playerTexture;
-    Sprite playerSprite;
-
-    Player player;
-    Rectangle hitbox;
 
     public World() {
+        WORLD_WIDTH = Config.WORLD_WIDTH;
+        WORLD_HEIGHT = Config.WORLD_HEIGHT;
+        BLOCK_SIZE = Config.BLOCK_SIZE;
+
         // generate the world
         terrain = new int[WORLD_WIDTH][WORLD_HEIGHT];
 
@@ -51,7 +44,6 @@ public class World {
         }
 
         this.player = new Player();
-        this.hitbox = player.getHitbox();
     }
 
 
@@ -66,49 +58,15 @@ public class World {
 
 
     public void update(float deltaTime) {
-        // Horizontal movement
-        // stop moving if no key is pressed
+        // Player calculates its velocities based on input(left,right) and gravity
+        player.update(deltaTime);
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            playerVelocityX = -SPEED; // move left
-
-            if (facingRight) {
-                playerSprite.setScale(1, 1);
-                facingRight = false;
-            }
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            playerVelocityX = SPEED;  // move right
-            if (!facingRight) {
-                playerSprite.setScale(-1, 1);
-                facingRight = true;
-            }
-        }
-        System.out.println("numah 1 ran");
-
-
-        hitbox.x += playerVelocityX * deltaTime;
-        System.out.println("numah 2 ran");
-        // Check wall collision
+        // Apply horizontal movement, then check walls
+        player.hitbox.x += player.playerVelocityX * deltaTime;
         checkCollisionX();
-        System.out.println("numah 3 ran");
 
-        // Vertical movement
-
-        // Apply Gravity to Velocity
-        playerVelocityY += GRAVITY * deltaTime;
-
-        System.out.println("numah 4 ran");
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && onGround) {
-            playerVelocityY = JUMP_SPEED;
-            onGround = false;
-        }
-        System.out.println("numah 5 ran");
-
-        hitbox.y += playerVelocityY * deltaTime;
-
-        // Check floor/ceiling collision
+        // Apply vertical movement, then check floors/ceilings
+        player.hitbox.y += player.playerVelocityY * deltaTime;
         checkCollisionY();
     }
 
@@ -119,61 +77,23 @@ public class World {
         // If moving Right, we check his right corners.
 
         // Get the grid coordinates of the player's corners
-        int startX = (int) (hitbox.x / BLOCK_SIZE);
-        int endX = (int) ((hitbox.x + hitbox.width) / BLOCK_SIZE);
-        int startY = (int) (hitbox.y / BLOCK_SIZE);
-        int endY = (int) ((hitbox.y + hitbox.height) / BLOCK_SIZE);
-
-        // Loop through the blocks we are currently touching
-        for (int x = startX; x <= endX; x++) {
-            for (int y = startY; y <= endY; y++) {
-
-                // Check bounds to avoid crashing at edge of world
-                if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
-
-                    // If we hit a solid block
-                    if (getBlock(x, y) > 0) { //if is not air
-
-                        if (playerVelocityX > 0) {
-                            // We were moving RIGHT. Snap us to the LEFT edge of the block.
-                            hitbox.x = x * BLOCK_SIZE - hitbox.width - 0.01f;
-                        } else if (playerVelocityX < 0) {
-                            // We were moving LEFT. Snap us to the RIGHT edge of the block.
-                            hitbox.x = (x + 1) * BLOCK_SIZE + 0.01f;
-                        }
-                        playerVelocityX = 0; // Stop moving
-                        return; // Collision handled, stop checking
-                    }
-                }
-            }
-        }
-    }
-
-    private void checkCollisionY() {
-        // Same logic, but for Up/Down
-        int startX = (int) (hitbox.x / BLOCK_SIZE);
-        int endX = (int) ((hitbox.x + hitbox.width) / BLOCK_SIZE);
-        int startY = (int) (hitbox.y / BLOCK_SIZE);
-        int endY = (int) ((hitbox.y + hitbox.height) / BLOCK_SIZE);
-
-        onGround = false;
+        int startX = (int) (player.hitbox.x / BLOCK_SIZE);
+        int endX = (int) ((player.hitbox.x + player.hitbox.width) / BLOCK_SIZE);
+        int startY = (int) (player.hitbox.y / BLOCK_SIZE);
+        int endY = (int) ((player.hitbox.y + player.hitbox.height) / BLOCK_SIZE);
 
         for (int x = startX; x <= endX; x++) {
             for (int y = startY; y <= endY; y++) {
                 if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
-                    if (getBlock(x, y) > 0) { //if it is not air ID.
-                        if (playerVelocityY > 0) {
-                            // Moving UP (head hit ceiling)
-                            hitbox.y = y * BLOCK_SIZE - hitbox.height - 0.01f; // extra margin
-                            playerVelocityY = 0;
-                        } else if (playerVelocityY < 0) {
-                            // Moving DOWN (feet hit floor)
-                            hitbox.y = (y + 1) * BLOCK_SIZE;
-
-                            // if we hit the floor gravity stops pulling down
-                            playerVelocityY = 0;
-                            onGround = true;
+                    if (getBlock(x, y) > 0) { // If it is solid block
+                        if (player.playerVelocityX > 0) {
+                            // Snapping to the LEFT of the block
+                            player.hitbox.x = x * BLOCK_SIZE - player.hitbox.width - 0.01f;
+                        } else if (player.playerVelocityX < 0) {
+                            // Snapping to the RIGHT of the block
+                            player.hitbox.x = (x + 1) * BLOCK_SIZE + 0.01f;
                         }
+                        player.playerVelocityX = 0; // Stop X velocity
                         return;
                     }
                 }
@@ -181,4 +101,33 @@ public class World {
         }
     }
 
+    private void checkCollisionY() {
+        int startX = (int) (player.hitbox.x / BLOCK_SIZE);
+        int endX = (int) ((player.hitbox.x + player.hitbox.width) / BLOCK_SIZE);
+        int startY = (int) (player.hitbox.y / BLOCK_SIZE);
+        int endY = (int) ((player.hitbox.y + player.hitbox.height) / BLOCK_SIZE);
+
+        // Assume we are falling until we hit a floor
+        player.onGround = false;
+
+        for (int x = startX; x <= endX; x++) {
+            for (int y = startY; y <= endY; y++) {
+                if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) {
+                    if (getBlock(x, y) > 0) {
+                        if (player.playerVelocityY > 0) {
+                            // Hit ceiling
+                            player.hitbox.y = y * BLOCK_SIZE - player.hitbox.height - 0.01f;
+                            player.playerVelocityY = 0;
+                        } else if (player.playerVelocityY < 0) {
+                            // Hit floor
+                            player.hitbox.y = (y + 1) * BLOCK_SIZE;
+                            player.playerVelocityY = 0;
+                            player.onGround = true; // Tell player it can jump again
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }

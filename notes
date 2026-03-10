@@ -1,0 +1,21 @@
+Continue on the old plan and try to make sure to get a MVP at the very least.
+E.g. including individual block health, player hp and ways to take damage,
+save world, procedural generation with noise (duh obviously), a couple biomes,
+spawn structures like trees and dungeons. Unload unused parts of the map to free up the memory
+(old version has the entire map loaded in memory which limits world size).
+
+
+The "If I Have Time" List:
+Implement a crafting system (a bit in between on this one).
+Add entities.
+Use “better” hitboxes for certain entities e.g. Oriented Bounding Boxes.
+(instead of current Axis Aligned Bounding Boxes used for the player)
+
+
+Layers: Layer 1 Layer 2 Layer 3
+
+If you are on layer 1 you can only stand on the red bordered(for visual representation) blocks.
+The player hitbox can not physically interact with a layer they’re not occupying.
+
+When you press a key (e.g. E or Q) you can switch to another layer
+(only if the space on the target layer is of air).
