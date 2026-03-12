@@ -11,6 +11,13 @@ public class View {
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1280, 720);
     }
+    public void resize(int width, int height) {
+        if(width <= 0 || height <= 0) return;
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
+    }
+
+
     public void setCameraX(float x) {
         camera.position.x = x;
     }

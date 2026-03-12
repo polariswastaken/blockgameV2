@@ -78,6 +78,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        System.out.println("viewport width: " + camera.viewportWidth + " and height: " + camera.viewportHeight);
+
         world.update(delta);
 
         // Track the camera to the player's new position inside the world
@@ -139,11 +141,13 @@ public class GameScreen implements Screen {
         // "endX" is the camera's right edge
         int endX = (int)(camera.position.x + camera.viewportWidth / 2) / BLOCK_SIZE + 2; // +2 to prerender
 
+
+
         // Clamp these values so we don't look outside the array
         if (startX < 0) startX = 0;
         if (endX > WORLD_WIDTH) endX = WORLD_WIDTH;
 
-        // Draws whats on screen with frustum culling.
+        // Draws what's on screen with frustum culling.
         for (int x = startX; x < endX; x++) {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
                 if (world.getBlock(x, y) == 1) {
@@ -170,6 +174,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        view.resize(width, height);
 
     }
 

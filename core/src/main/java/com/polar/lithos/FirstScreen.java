@@ -26,7 +26,7 @@ public class FirstScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
 
-        // Apply the menu's viewport, NOT the game's 8x5 viewport
+        // Apply the menu's viewport, NOT Game's 8x5 viewport
         menuViewport.apply();
         game.batch.setProjectionMatrix(menuViewport.getCamera().combined);
 
@@ -40,6 +40,7 @@ public class FirstScreen implements Screen {
             game.setScreen(new GameScreen(game));
             dispose();
         }
+        System.out.println("viewport width: " + menuViewport.getWorldWidth() + " and height: " + menuViewport.getWorldHeight());
     }
 
     @Override

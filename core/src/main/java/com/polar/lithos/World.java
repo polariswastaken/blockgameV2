@@ -23,6 +23,13 @@ public class World {
         WORLD_HEIGHT = Config.WORLD_HEIGHT;
         BLOCK_SIZE = Config.BLOCK_SIZE;
 
+        BlockDefinition[] registry = new BlockDefinition[256];
+        registry[0] = new BlockDefinition(0, 0, false); // Air
+        registry[1] = new BlockDefinition(1, 30, true); // Stone
+        registry[2] = new BlockDefinition(2, 10, true); // Dirt
+        registry[3] = new BlockDefinition(3, 10, true); // Grass
+        registry[4] = new BlockDefinition(4, 10, true); // Grass-dirt transition
+
         // generate the world
         terrain = new int[WORLD_WIDTH][WORLD_HEIGHT];
 
