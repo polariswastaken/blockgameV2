@@ -6,10 +6,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Rectangle;
 
+import java.util.HashMap;
+
 public class World {
     // 2D array [width][height].
     // world[x][y] will hold an ID (e.g. 1 for stone, 2 for dirt)
-    int[][] terrain;
+    public int[][] map;
+
+    public BlockDefinition[] registry;
+    public HashMap<Integer, DamagedBlock> damagedBlocks;
+
     private final int WORLD_WIDTH;
     private final int WORLD_HEIGHT;
     private final int BLOCK_SIZE;
@@ -23,29 +29,32 @@ public class World {
         WORLD_HEIGHT = Config.WORLD_HEIGHT;
         BLOCK_SIZE = Config.BLOCK_SIZE;
 
-        BlockDefinition[] registry = new BlockDefinition[256];
-        registry[0] = new BlockDefinition(0, 0, false); // Air
+        // Lightweight map (just numbers)
+        map = new int[WORLD_WIDTH][WORLD_HEIGHT];
+
+        // The registry (the rules for the blocks)
+        registry = new BlockDefinition[256];
+        damagedBlocks = new HashMap<>();
+
         registry[1] = new BlockDefinition(1, 30, true); // Stone
         registry[2] = new BlockDefinition(2, 10, true); // Dirt
         registry[3] = new BlockDefinition(3, 10, true); // Grass
         registry[4] = new BlockDefinition(4, 10, true); // Grass-dirt transition
 
-        // generate the world
-        terrain = new int[WORLD_WIDTH][WORLD_HEIGHT];
 
         // x (column), y (row)
         for (int x = 0; x < WORLD_WIDTH; x++) {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
                 if (y < 59) {
-                    terrain[x][y] = 1; // STONE
+                    map[x][y] = 1; // STONE
                 } else if (y < 61){
-                    terrain[x][y] = 2; // DIRT
+                    map[x][y] = 2; // DIRT
                 } else if (y < 62) {
-                    terrain[x][y] = 3; // GRASS
+                    map[x][y] = 3; // GRASS
                 } else if (y < 63) {
-                    terrain[x][y] = 4; // GRASS BLOCK
+                    map[x][y] = 4; // GRASS BLOCK
                 } else {
-                    terrain[x][y] = 0;
+                    map[x][y] = 0;
                 }
             }
         }
@@ -53,13 +62,40 @@ public class World {
         this.player = new Player();
     }
 
+    // Converts a 2D (x,y) grid coordinate into a single 1D memory index.
+    // (y * width) skips down to the correct row, and (+ x) walks right to the exact column.
+    private int getIndex(int x, int y) {
+        return x + (y * WORLD_WIDTH);
+    }
+
+    public void hitBlock(int x, int y, int damageAmount) {
+        if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) return;
+        int blockID = map[x][y];
+        if (blockID == 0) return;
+
+        int index = getIndex(x, y);
+
+        if (!damagedBlocks.containsKey(index)) {
+            // Block is at full health. Get max health from registry, then damage it!
+            int maxHealth = registry[blockID].maxHealth;
+            damagedBlocks.put(index, new DamagedBlock(maxHealth - damageAmount));
+        } else {
+            damagedBlocks.get(index).currentHealth -= damageAmount;
+        }
+
+        if (damagedBlocks.get(index).currentHealth <= 0) {
+            map[x][y] = 0;                   // Change map data to air
+            damagedBlocks.remove(index);     // Clean up memory since we don't need it anymore.
+        }
+    }
+
 
     public int getBlock(int x, int y) {
-        return terrain[x][y];
+        return map[x][y];
     }
 
     public void setBlock(int x, int y, int block) {
-        terrain[x][y] = block;
+        map[x][y] = block;
     }
 
 

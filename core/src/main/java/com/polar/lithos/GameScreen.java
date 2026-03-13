@@ -111,17 +111,26 @@ public class GameScreen implements Screen {
 
             // Safety check so if we click outside the world, the game won't crash
             if (gridX >= 0 && gridX < WORLD_WIDTH && gridY >= 0 && gridY < WORLD_HEIGHT) {
-                if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
-                    pickedBlock = world.getBlock(gridX, gridY);
+
+                if (Config.GAMEMODE == "Survival") {
+                    if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        world.hitBlock(gridX, gridY, 10);
+                    }
                 }
 
-                // Sets the array value to PICKED block on RIGHT click.
-                if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
-                    world.setBlock(gridX, gridY, pickedBlock);
-                }
-                // Sets array value to 0 (air) on LEFT click.
-                else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                    world.setBlock(gridX, gridY, 0);
+                if (Config.GAMEMODE == "Creative") {
+                    if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
+                        pickedBlock = world.getBlock(gridX, gridY);
+                    }
+
+                    // Sets the array value to PICKED block on RIGHT click.
+                    if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+                        world.setBlock(gridX, gridY, pickedBlock);
+                    }
+                    // Sets array value to 0 (air) on LEFT click.
+                    else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        world.setBlock(gridX, gridY, 0);
+                    }
                 }
             }
         }
