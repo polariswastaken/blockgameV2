@@ -2,42 +2,50 @@ package com.polar.lithos;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class View {
-    OrthographicCamera camera;
+    ExtendViewport worldViewport;
+    FitViewport uiViewport;
 
-    public View() {
+    public View(ExtendViewport world, FitViewport ui) {
         // setup camera
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, 1280, 720);
+        worldViewport = world;
+        uiViewport = ui;
+
     }
     public void resize(int width, int height) {
         if(width <= 0 || height <= 0) return;
-        camera.viewportWidth = width;
-        camera.viewportHeight = height;
+        worldViewport.update(width, height, false);
+        uiViewport.update(width, height, true);
     }
 
+    public OrthographicCamera getWorldCamera() {
+        return (OrthographicCamera) worldViewport.getCamera();
+    }
 
     public void setCameraX(float x) {
-        camera.position.x = x;
+        getWorldCamera().position.x = x;
     }
     public void setCameraY(float y) {
-        camera.position.y = y;
+        getWorldCamera().position.y = y;
     }
 
     public float getCameraX() {
-        return camera.position.x;
+        return getWorldCamera().position.x;
     }
     public float getCameraY() {
-        return camera.position.y;
+        return getWorldCamera().position.y;
     }
 
     public Vector3 translateCoordinateSystem(Vector3 pos) {
-        return camera.unproject(pos);
+        return worldViewport.unproject(pos);
     }
 
     public void clampScreen() {
         // Clamp screen to game world. (world screen boundary).
+        OrthographicCamera camera = getWorldCamera();
         float worldWidthInPixels = Config.WORLD_WIDTH * Config.BLOCK_SIZE;
 
         float minX = camera.viewportWidth / 2;

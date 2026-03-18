@@ -69,11 +69,13 @@ public class World {
     }
 
     public void hitBlock(int x, int y, int damageAmount) {
-        if (x >= 0 && x < WORLD_WIDTH && y >= 0 && y < WORLD_HEIGHT) return;
+        System.out.println("hit block at: x: " + x + ". y: " + y);
+        if (x < 0 && x > WORLD_WIDTH && y < 0 && y > WORLD_HEIGHT) return;
         int blockID = map[x][y];
         if (blockID == 0) return;
 
         int index = getIndex(x, y);
+
 
         if (!damagedBlocks.containsKey(index)) {
             // Block is at full health. Get max health from registry, then damage it!
@@ -82,6 +84,7 @@ public class World {
         } else {
             damagedBlocks.get(index).currentHealth -= damageAmount;
         }
+        System.out.println("block at: x"+x + " y: " + y + " hp: " + damagedBlocks.get(index).currentHealth);
 
         if (damagedBlocks.get(index).currentHealth <= 0) {
             map[x][y] = 0;                   // Change map data to air

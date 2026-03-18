@@ -1,8 +1,10 @@
 package com.polar.lithos;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 /**
@@ -14,14 +16,24 @@ public class Game extends com.badlogic.gdx.Game {
 
     public SpriteBatch batch;
     public BitmapFont font;
-    public FitViewport viewport;
+
+    public ExtendViewport worldViewport;
+    public FitViewport uiViewport;
+
+    public OrthographicCamera worldCamera;
+    public OrthographicCamera uiCamera;
 
 
     @Override
     public void create() {
         batch = new SpriteBatch();
         font = new BitmapFont();
-        viewport = new FitViewport(8,5);
+
+        worldCamera = new OrthographicCamera();
+        worldViewport = new ExtendViewport(800, 600, worldCamera);
+
+        uiCamera = new OrthographicCamera();
+        uiViewport = new FitViewport(1920, 1080, uiCamera);
 
         this.setScreen(new FirstScreen(this));
     }

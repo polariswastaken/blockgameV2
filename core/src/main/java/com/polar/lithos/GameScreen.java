@@ -40,7 +40,7 @@ public class GameScreen implements Screen {
         // generate the world
         this.world = new World();
         this.player = new Player();
-        this.view = new View();
+        this.view = new View(game.worldViewport, game.uiViewport);
 
         BLOCK_SIZE = Config.BLOCK_SIZE;
         WORLD_WIDTH = Config.WORLD_WIDTH;
@@ -48,7 +48,7 @@ public class GameScreen implements Screen {
 
         this.game = game;
         this.batch = game.batch; //import spriteBatch
-        this.camera = view.camera;
+        this.camera = view.getWorldCamera();
 
 
         stoneTexture = new Texture("stone.png");
@@ -76,19 +76,7 @@ public class GameScreen implements Screen {
     @Override
     public void show() {}
 
-    @Override
-    public void render(float delta) {
-        System.out.println("viewport width: " + camera.viewportWidth + " and height: " + camera.viewportHeight);
-
-        world.update(delta);
-
-        // Track the camera to the player's new position inside the world
-        view.setCameraX(world.player.hitbox.x);
-        view.setCameraY(world.player.hitbox.y + 100);
-        view.clampScreen();
-
-        view.clampScreen();
-
+    public void isBlockTouched() {
         // Checks if the screen has been touched (e.g., mouse left,right,middle clicked)
         if (Gdx.input.isTouched()) {
 
@@ -109,16 +97,16 @@ public class GameScreen implements Screen {
             int gridX = (int) (mousePos.x / BLOCK_SIZE);
             int gridY = (int) (mousePos.y / BLOCK_SIZE);
 
-            // Safety check so if we click outside the world, the game won't crash
+            // Safety check so if we click outside the world the game won't crash
             if (gridX >= 0 && gridX < WORLD_WIDTH && gridY >= 0 && gridY < WORLD_HEIGHT) {
 
-                if (Config.GAMEMODE == "Survival") {
+                if (Config.GAMEMODE.equals("survival")) {
                     if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                        world.hitBlock(gridX, gridY, 10);
+                        world.hitBlock(gridX, gridY, 1);
                     }
                 }
 
-                if (Config.GAMEMODE == "Creative") {
+                if (Config.GAMEMODE.equals("creative")) {
                     if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
                         pickedBlock = world.getBlock(gridX, gridY);
                     }
@@ -134,21 +122,38 @@ public class GameScreen implements Screen {
                 }
             }
         }
+    }
+
+    @Override
+    public void render(float delta) {
+        //System.out.println("viewport width: " + camera.viewportWidth + " and height: " + camera.viewportHeight);
+
+        world.update(delta);
+
+        // Track the camera to the player's new position inside the world
+        view.setCameraX(world.player.hitbox.x);
+        view.setCameraY(world.player.hitbox.y + 100);
+        view.clampScreen();
+
+        // Checks if player has interacted with any blocks in the world.
+        isBlockTouched();
 
         Gdx.gl.glClearColor(0.4f, 0.6f, 0.9f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Render
-        view.camera.update();
-        batch.setProjectionMatrix(view.camera.combined);
+        camera.update();
+        view.worldViewport.apply();
+        batch.setProjectionMatrix(camera.combined);
 
         batch.begin();
 
+        float viewWidth = view.worldViewport.getWorldWidth();
         // Calculate which blocks are visible
         // "startX" is the camera's left edge converted to grid coordinates
-        int startX = (int)(camera.position.x - camera.viewportWidth / 2) / BLOCK_SIZE;
+        int startX = (int)(camera.position.x - viewWidth) / BLOCK_SIZE;
         // "endX" is the camera's right edge
-        int endX = (int)(camera.position.x + camera.viewportWidth / 2) / BLOCK_SIZE + 2; // +2 to prerender
+        int endX = (int)(camera.position.x + viewWidth) / BLOCK_SIZE + 2; // +2 to prerender
 
 
 

@@ -14,7 +14,7 @@ public class FirstScreen implements Screen {
 
     public FirstScreen(Game game) {
         this.game = game;
-        this.menuViewport = new FitViewport(1280, 720);
+        this.menuViewport = new FitViewport(1920, 1080);
     }
 
 
@@ -33,7 +33,7 @@ public class FirstScreen implements Screen {
         game.batch.begin();
         // Now you are drawing in a 1280x720 space.
         // X and Y are in pixels. (640, 360) is the middle of the screen.
-        game.font.draw(game.batch, "Main Menu - Click to Start", 550, 360);
+        game.font.draw(game.batch, "Main Menu - Click to Start", 890, 540);
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
