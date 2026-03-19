@@ -113,6 +113,7 @@ public class GameScreen implements Screen {
 
                     // Sets the array value to PICKED block on RIGHT click.
                     if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+                        System.out.println("RIGHT CLICK");
                         world.setBlock(gridX, gridY, pickedBlock);
                     }
                     // Sets array value to 0 (air) on LEFT click.

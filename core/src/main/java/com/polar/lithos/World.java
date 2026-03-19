@@ -77,6 +77,7 @@ public class World {
         int index = getIndex(x, y);
 
 
+        // Removes HP from block object in damagedBlocks hashmap OR damages it and adds it to the hashmap.
         if (!damagedBlocks.containsKey(index)) {
             // Block is at full health. Get max health from registry, then damage it!
             int maxHealth = registry[blockID].maxHealth;
@@ -86,6 +87,7 @@ public class World {
         }
         System.out.println("block at: x"+x + " y: " + y + " hp: " + damagedBlocks.get(index).currentHealth);
 
+        // The Block is dead -> set to air -> remove from hashmap
         if (damagedBlocks.get(index).currentHealth <= 0) {
             map[x][y] = 0;                   // Change map data to air
             damagedBlocks.remove(index);     // Clean up memory since we don't need it anymore.
