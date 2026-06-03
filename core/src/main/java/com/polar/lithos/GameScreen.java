@@ -23,7 +23,6 @@ public class GameScreen implements Screen {
     Music backgroundMusic;
     OrthographicCamera camera;
 
-    Player player;
     World world;
 
     private final int BLOCK_SIZE;
@@ -39,7 +38,6 @@ public class GameScreen implements Screen {
     public GameScreen(final Game game) {
         // generate the world
         this.world = new World();
-        this.player = new Player();
         this.view = new View(game.worldViewport, game.uiViewport);
 
         BLOCK_SIZE = Config.BLOCK_SIZE;
@@ -106,21 +104,21 @@ public class GameScreen implements Screen {
                     }
                 }
 
-                if (Config.GAMEMODE.equals("creative")) {
-                    if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
-                        pickedBlock = world.getBlock(gridX, gridY);
-                    }
-
-                    // Sets the array value to PICKED block on RIGHT click.
-                    if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
-                        System.out.println("RIGHT CLICK");
-                        world.setBlock(gridX, gridY, pickedBlock);
-                    }
-                    // Sets array value to 0 (air) on LEFT click.
-                    else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                        world.setBlock(gridX, gridY, 0);
-                    }
-                }
+//                if (Config.GAMEMODE.equals("creative")) {
+//                    if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
+//                        pickedBlock = world.getBlock(gridX, gridY);
+//                    }
+//
+//                    // Sets the array value to PICKED block on RIGHT click.
+//                    if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+//                        System.out.println("RIGHT CLICK");
+//                        world.setBlock(gridX, gridY, pickedBlock);
+//                    }
+//                    // Sets array value to 0 (air) on LEFT click.
+//                    else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+//                        world.setBlock(gridX, gridY, 0);
+//                    }
+//                }
             }
         }
     }
@@ -165,7 +163,9 @@ public class GameScreen implements Screen {
         // Draws what's on screen with frustum culling.
         for (int x = startX; x < endX; x++) {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
+                //System.out.println("wow im printing!");
                 if (world.getBlock(x, y) == 1) {
+                    //System.out.println("RETURNED BLOCK IS: " + "1");
                     batch.draw(stoneTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
                 } else if (world.getBlock(x, y) == 2) {
                     batch.draw(dirtTexture, x * BLOCK_SIZE, y * BLOCK_SIZE);
@@ -179,6 +179,7 @@ public class GameScreen implements Screen {
 
         //draw player
         world.player.draw(batch);
+        System.out.println("player is at: " + world.player.playerVelocityY);
 
         batch.end();
 

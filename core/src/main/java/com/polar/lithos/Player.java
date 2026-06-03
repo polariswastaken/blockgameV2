@@ -27,6 +27,7 @@ public class Player {
         GRAVITY = Config.GRAVITY;
 
         // Setup Hitbox
+        // Spawn X + Y, Player Size X + Y
         this.hitbox = new Rectangle(8 * Config.BLOCK_SIZE, 100 * Config.BLOCK_SIZE, 12, 28);
 
         // Setup Sprite

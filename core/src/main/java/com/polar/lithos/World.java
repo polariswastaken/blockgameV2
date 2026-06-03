@@ -9,6 +9,8 @@ import com.badlogic.gdx.math.Rectangle;
 import java.util.HashMap;
 
 public class World {
+    private final ChunkManager chunkManager;
+
     // 2D array [width][height].
     // world[x][y] will hold an ID (e.g. 1 for stone, 2 for dirt)
     public int[][] map;
@@ -20,16 +22,18 @@ public class World {
     private final int WORLD_HEIGHT;
     private final int BLOCK_SIZE;
 
-    //public so game screen can access it to draw it
+    // Public, so game screen can access it to draw it
     public Player player;
 
 
     public World() {
+        this.chunkManager = new ChunkManager();
+
         WORLD_WIDTH = Config.WORLD_WIDTH;
         WORLD_HEIGHT = Config.WORLD_HEIGHT;
         BLOCK_SIZE = Config.BLOCK_SIZE;
 
-        // Lightweight map (just numbers)
+
         map = new int[WORLD_WIDTH][WORLD_HEIGHT];
 
         // The registry (the rules for the blocks)
@@ -47,17 +51,46 @@ public class World {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
                 if (y < 59) {
                     map[x][y] = 1; // STONE
+                    setBlock(x, y, 1);
+                    System.out.println(getBlock(x, y));
                 } else if (y < 61){
                     map[x][y] = 2; // DIRT
+                    setBlock(x, y, 2);
+                    System.out.println(getBlock(x, y));
                 } else if (y < 62) {
                     map[x][y] = 3; // GRASS
+                    setBlock(x, y, 3);
+                    System.out.println(getBlock(x, y));
                 } else if (y < 63) {
                     map[x][y] = 4; // GRASS BLOCK
+                    setBlock(x, y, 4);
+                    System.out.println(getBlock(x, y));
                 } else {
                     map[x][y] = 0;
+                    setBlock(x, y, 0);
+                    System.out.println(getBlock(x, y));
                 }
             }
         }
+
+        // x (column), y (row) TESTING
+        for (int x = 0; x < WORLD_WIDTH; x++) {
+            for (int y = 0; y < WORLD_HEIGHT; y++) {
+                if (y < 59) {
+                    System.out.println("I AM BLOCK: " + getBlock(x, y));
+                } else if (y < 61){
+                    System.out.println("I AM BLOCK: " + getBlock(x, y));
+                } else if (y < 62) {
+                    System.out.println("I AM BLOCK: " + getBlock(x, y));
+                } else if (y < 63) {
+                    System.out.println("I AM BLOCK: " + getBlock(x, y));
+                } else {
+                    System.out.println("I AM BLOCK: " + getBlock(x, y));
+                }
+            }
+        }
+
+
 
         this.player = new Player();
     }
@@ -89,18 +122,19 @@ public class World {
 
         // The Block is dead -> set to air -> remove from hashmap
         if (damagedBlocks.get(index).currentHealth <= 0) {
-            map[x][y] = 0;                   // Change map data to air
-            damagedBlocks.remove(index);     // Clean up memory since we don't need it anymore.
+            map[x][y] = 0;
+            damagedBlocks.remove(index);
         }
     }
 
 
     public int getBlock(int x, int y) {
-        return map[x][y];
+        return chunkManager.getBlockAtWorldPos(x, y);
     }
 
     public void setBlock(int x, int y, int block) {
         map[x][y] = block;
+        chunkManager.setBlockAtWorldPos(x, y, block);
     }
 
 
@@ -111,11 +145,11 @@ public class World {
 
         // Apply horizontal movement, then check walls
         player.hitbox.x += player.playerVelocityX * deltaTime;
-        checkCollisionX();
+        //checkCollisionX();
 
         // Apply vertical movement, then check floors/ceilings
         player.hitbox.y += player.playerVelocityY * deltaTime;
-        checkCollisionY();
+        //checkCollisionY();
     }
 
 
