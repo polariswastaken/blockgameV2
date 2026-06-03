@@ -26,13 +26,11 @@ public class FirstScreen implements Screen {
     public void render(float delta) {
         ScreenUtils.clear(Color.BLACK);
 
-        // Apply the menu's viewport, NOT Game's 8x5 viewport
+        // Apply the menu's viewport, NOT Game's viewport
         menuViewport.apply();
         game.batch.setProjectionMatrix(menuViewport.getCamera().combined);
 
         game.batch.begin();
-        // Now you are drawing in a 1280x720 space.
-        // X and Y are in pixels. (640, 360) is the middle of the screen.
         game.font.draw(game.batch, "Main Menu - Click to Start", 890, 540);
         game.batch.end();
 
@@ -52,21 +50,17 @@ public class FirstScreen implements Screen {
 
     @Override
     public void pause() {
-        // Invoked when your application is paused.
     }
 
     @Override
     public void resume() {
-        // Invoked when your application is resumed after pause.
     }
 
     @Override
     public void hide() {
-        // This method is called when another screen replaces this one.
     }
 
     @Override
     public void dispose() {
-        // Destroy screen's assets here.
     }
 }

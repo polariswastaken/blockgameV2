@@ -7,18 +7,15 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class View {
     ExtendViewport worldViewport;
-    FitViewport uiViewport;
 
-    public View(ExtendViewport world, FitViewport ui) {
+    public View(ExtendViewport world) {
         // setup camera
         worldViewport = world;
-        uiViewport = ui;
 
     }
     public void resize(int width, int height) {
         if(width <= 0 || height <= 0) return;
         worldViewport.update(width, height, false);
-        uiViewport.update(width, height, true);
     }
 
     public OrthographicCamera getWorldCamera() {

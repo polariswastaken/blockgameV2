@@ -38,7 +38,7 @@ public class GameScreen implements Screen {
     public GameScreen(final Game game) {
         // generate the world
         this.world = new World();
-        this.view = new View(game.worldViewport, game.uiViewport);
+        this.view = new View(game.worldViewport);
 
         BLOCK_SIZE = Config.BLOCK_SIZE;
         WORLD_WIDTH = Config.WORLD_WIDTH;
@@ -92,42 +92,46 @@ public class GameScreen implements Screen {
 
             // Convert world coordinates to grid blocks/tiles
             // (int) to drop the decimals
-            int gridX = (int) (mousePos.x / BLOCK_SIZE);
-            int gridY = (int) (mousePos.y / BLOCK_SIZE);
+            int blockX = (int) (mousePos.x / BLOCK_SIZE);
+            int blockY = (int) (mousePos.y / BLOCK_SIZE);
+
+            System.out.println("blockX: " + blockX + " blockY: " + blockY);
 
             // Safety check so if we click outside the world the game won't crash
-            if (gridX >= 0 && gridX < WORLD_WIDTH && gridY >= 0 && gridY < WORLD_HEIGHT) {
+            if (blockX >= 0 && blockX < WORLD_WIDTH && blockY >= 0 && blockY < WORLD_HEIGHT) {
 
-                if (Config.GAMEMODE.equals("survival")) {
+                if (Config.GAMEMODE.equalsIgnoreCase("survival")) {
                     if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                        world.hitBlock(gridX, gridY, 1);
+                        world.hitBlock(blockX, blockY, 1);
+                        System.out.println("LEFT CLICK");
                     }
                 }
 
-//                if (Config.GAMEMODE.equals("creative")) {
-//                    if (Gdx.input.isButtonJustPressed(Input.Buttons.MIDDLE)) {
-//                        pickedBlock = world.getBlock(gridX, gridY);
-//                    }
-//
-//                    // Sets the array value to PICKED block on RIGHT click.
-//                    if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
-//                        System.out.println("RIGHT CLICK");
-//                        world.setBlock(gridX, gridY, pickedBlock);
-//                    }
-//                    // Sets array value to 0 (air) on LEFT click.
-//                    else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-//                        world.setBlock(gridX, gridY, 0);
-//                    }
-//                }
+                if (Config.GAMEMODE.equalsIgnoreCase("creative")) {
+                    if (Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
+                        pickedBlock = world.getBlock(blockX, blockY);
+                    }
+
+                    // Sets the array value to PICKED block on RIGHT click.
+                    if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
+                        System.out.println("RIGHT CLICK");
+                        world.setBlock(blockX, blockY, pickedBlock);
+                    }
+                    // Sets array value to 0 (air) on LEFT click.
+                    else if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        world.setBlock(blockX, blockY, 0);
+                    }
+                }
             }
         }
     }
 
     @Override
     public void render(float delta) {
-        //System.out.println("viewport width: " + camera.viewportWidth + " and height: " + camera.viewportHeight);
 
-        world.update(delta);
+        float clampedDelta = Math.min(delta, 0.05f);
+
+        world.update(clampedDelta);
 
         // Track the camera to the player's new position inside the world
         view.setCameraX(world.player.hitbox.x);
@@ -179,7 +183,6 @@ public class GameScreen implements Screen {
 
         //draw player
         world.player.draw(batch);
-        System.out.println("player is at: " + world.player.playerVelocityY);
 
         batch.end();
 

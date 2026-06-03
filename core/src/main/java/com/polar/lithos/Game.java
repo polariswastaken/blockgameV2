@@ -12,16 +12,13 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
  * platforms.
  */
 public class Game extends com.badlogic.gdx.Game {
-    public static final String GAME_TITLE = "blockgameV2 | [fps: %s]";
+    public static final String GAME_TITLE = "blockgame | [fps: %s]";
 
     public SpriteBatch batch;
     public BitmapFont font;
 
     public ExtendViewport worldViewport;
-    public FitViewport uiViewport;
-
     public OrthographicCamera worldCamera;
-    public OrthographicCamera uiCamera;
 
 
     @Override
@@ -31,9 +28,6 @@ public class Game extends com.badlogic.gdx.Game {
 
         worldCamera = new OrthographicCamera();
         worldViewport = new ExtendViewport(800, 600, worldCamera);
-
-        uiCamera = new OrthographicCamera();
-        uiViewport = new FitViewport(1920, 1080, uiCamera);
 
         this.setScreen(new FirstScreen(this));
     }

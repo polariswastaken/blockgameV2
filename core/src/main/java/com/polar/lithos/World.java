@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Rectangle;
 import java.util.HashMap;
 
 public class World {
-    private final ChunkManager chunkManager;
 
     // 2D array [width][height].
     // world[x][y] will hold an ID (e.g. 1 for stone, 2 for dirt)
@@ -27,7 +26,6 @@ public class World {
 
 
     public World() {
-        this.chunkManager = new ChunkManager();
 
         WORLD_WIDTH = Config.WORLD_WIDTH;
         WORLD_HEIGHT = Config.WORLD_HEIGHT;
@@ -50,47 +48,18 @@ public class World {
         for (int x = 0; x < WORLD_WIDTH; x++) {
             for (int y = 0; y < WORLD_HEIGHT; y++) {
                 if (y < 59) {
-                    map[x][y] = 1; // STONE
-                    setBlock(x, y, 1);
-                    System.out.println(getBlock(x, y));
+                    setBlock(x, y, 1); // STONE
                 } else if (y < 61){
-                    map[x][y] = 2; // DIRT
-                    setBlock(x, y, 2);
-                    System.out.println(getBlock(x, y));
+                    setBlock(x, y, 2); // DIRT
                 } else if (y < 62) {
-                    map[x][y] = 3; // GRASS
-                    setBlock(x, y, 3);
-                    System.out.println(getBlock(x, y));
+                    setBlock(x, y, 3); // GRASS
                 } else if (y < 63) {
-                    map[x][y] = 4; // GRASS BLOCK
-                    setBlock(x, y, 4);
-                    System.out.println(getBlock(x, y));
+                    setBlock(x, y, 4); // GRASS BLOCK
                 } else {
-                    map[x][y] = 0;
-                    setBlock(x, y, 0);
-                    System.out.println(getBlock(x, y));
+                    setBlock(x, y, 0); // AIR
                 }
             }
         }
-
-        // x (column), y (row) TESTING
-        for (int x = 0; x < WORLD_WIDTH; x++) {
-            for (int y = 0; y < WORLD_HEIGHT; y++) {
-                if (y < 59) {
-                    System.out.println("I AM BLOCK: " + getBlock(x, y));
-                } else if (y < 61){
-                    System.out.println("I AM BLOCK: " + getBlock(x, y));
-                } else if (y < 62) {
-                    System.out.println("I AM BLOCK: " + getBlock(x, y));
-                } else if (y < 63) {
-                    System.out.println("I AM BLOCK: " + getBlock(x, y));
-                } else {
-                    System.out.println("I AM BLOCK: " + getBlock(x, y));
-                }
-            }
-        }
-
-
 
         this.player = new Player();
     }
@@ -129,12 +98,11 @@ public class World {
 
 
     public int getBlock(int x, int y) {
-        return chunkManager.getBlockAtWorldPos(x, y);
+        return map[x][y];
     }
 
     public void setBlock(int x, int y, int block) {
         map[x][y] = block;
-        chunkManager.setBlockAtWorldPos(x, y, block);
     }
 
 
@@ -145,11 +113,17 @@ public class World {
 
         // Apply horizontal movement, then check walls
         player.hitbox.x += player.playerVelocityX * deltaTime;
-        //checkCollisionX();
+        checkCollisionX();
 
         // Apply vertical movement, then check floors/ceilings
         player.hitbox.y += player.playerVelocityY * deltaTime;
-        //checkCollisionY();
+
+        // Prevent player from falling too far aka TERMINAL VELOCITY
+        // added since if a player falls too fast they can fall through the floor.
+        if (player.playerVelocityY < -800) {
+            player.playerVelocityY = -800;
+        }
+        checkCollisionY();
     }
 
 
